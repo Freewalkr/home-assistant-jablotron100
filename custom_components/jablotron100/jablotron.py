@@ -990,10 +990,9 @@ class Jablotron:
 						try:
 							raw_packet = stream.read(STREAM_PACKET_SIZE)
 						except (PermissionError, OSError) as ex:
-							if ex.errno == 5:
-								LOGGER.error("Can't read from device, reopening stream")
-								stream.close()
-								stream = self._open_read_stream()
+							LOGGER.error("Can't read from device, reopening stream")
+							stream.close()
+							stream = self._open_read_stream()
 							time.sleep(2)
 
 
