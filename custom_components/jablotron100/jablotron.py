@@ -985,7 +985,17 @@ class Jablotron:
 
 					self._stream_data_updating_event.clear()
 
-					raw_packet = stream.read(STREAM_PACKET_SIZE)
+					raw_packet = None
+					while not raw_packet:
+						try:
+							raw_packet = stream.read(STREAM_PACKET_SIZE)
+						except OSError as ex:
+							if ex.errno == 5:
+								LOGGER.error("Can't read from device, reopening stream")
+								stream.close()
+								stream = self._open_read_stream()
+							time.sleep(2)
+
 
 					self._stream_data_updating_event.set()
 
