@@ -991,9 +991,15 @@ class Jablotron:
 							raw_packet = stream.read(STREAM_PACKET_SIZE)
 						except (ValueError, FileNotFoundError, PermissionError, OSError) as ex:
 							LOGGER.error("Can't read from device, reopening stream")
-							stream.close()
-							stream = self._open_read_stream()
-							time.sleep(2)
+							while True:
+								try:
+									stream.close()
+									stream = self._open_read_stream()
+									break
+								except (FileNotFoundError, PermissionError) as ex:
+									LOGGER.error("Still can't read from device, will try reopening again")
+									time.sleep(2)
+
 
 
 					self._stream_data_updating_event.set()
