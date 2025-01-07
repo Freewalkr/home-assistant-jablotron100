@@ -230,6 +230,7 @@ class Jablotron:
 
 		self._stream_thread_pool_executor: ThreadPoolExecutor | None = None
 		self._stream_stop_event: threading.Event = threading.Event()
+		self._serial_available_event: threading.Event = threading.Event()
 		self._stream_data_updating_event: threading.Event = threading.Event()
 		self._stream_diagnostics_event: threading.Event = threading.Event()
 
@@ -988,18 +989,15 @@ class Jablotron:
 					raw_packet = None
 					while not raw_packet:
 						try:
+							_ = self._serial_available_event.wait()
 							raw_packet = stream.read(STREAM_PACKET_SIZE)
 						except (ValueError, FileNotFoundError, PermissionError, OSError) as ex:
-							LOGGER.error("Can't read from device, reopening stream")
-							while True:
-								try:
-									stream.close()
-									stream = self._open_read_stream()
-									break
-								except (FileNotFoundError, PermissionError) as ex:
-									LOGGER.error("Still can't read from device, will try reopening again")
-									time.sleep(2)
-
+							LOGGER.error("Can't read from serial, waiting till it's available")
+							# heartbeat function will set this when serial becomes available
+							self._serial_available_event.clear()
+							_ = self._serial_available_event.wait()
+							stream.close()
+							stream = self._open_read_stream()
 
 
 					self._stream_data_updating_event.set()
@@ -1060,6 +1058,7 @@ class Jablotron:
 	def _keepalive(self):
 		counter = 0
 		last_devices_update = None
+		stream_open_failed_counter = 0
 
 		while not self._stream_stop_event.is_set():
 			if not self._stream_data_updating_event.wait(0.5):
@@ -1079,7 +1078,14 @@ class Jablotron:
 							last_devices_update = actual_time
 					else:
 						self._send_packet(self.create_packet_command(COMMAND_HEARTBEAT))
+					self._serial_available_event.set()
 
+				except (FileNotFoundError, PermissionError):
+					LOGGER.warning("Serial is still not available")
+					stream_open_failed_counter += 1
+					if stream_open_failed_counter > 20:
+						LOGGER.warning("Serial is not available for too long, setting 'unavailable' for Jablotron")
+						self._set_unavailable()
 				except Exception as ex:
 					LOGGER.exception("Write error: %s", ex)
 					self._set_unavailable()
