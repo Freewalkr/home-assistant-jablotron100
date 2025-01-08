@@ -1080,6 +1080,7 @@ class Jablotron:
 					else:
 						self._send_packet(self.create_packet_command(COMMAND_HEARTBEAT))
 					self._serial_available_event.set()
+					stream_open_failed_counter = 0
 
 				except (FileNotFoundError, PermissionError):
 					LOGGER.warning("Serial is still not available")
