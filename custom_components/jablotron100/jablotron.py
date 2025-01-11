@@ -996,7 +996,7 @@ class Jablotron:
 							self._serial_available_event.clear()
 							# heartbeat function will set this when serial becomes available
 							_ = self._serial_available_event.wait()
-							LOGGER.info("Seems that serial is available now, reopening stream")
+							LOGGER.warning("Seems that serial is available now, reopening stream")
 							stream.close()
 							stream = self._open_read_stream()
 
@@ -1079,10 +1079,13 @@ class Jablotron:
 							last_devices_update = actual_time
 					else:
 						self._send_packet(self.create_packet_command(COMMAND_HEARTBEAT))
-					self._serial_available_event.set()
+
+					if not self._serial_available_event.is_set():
+						LOGGER.warning("Heartbeat succeeded, considering serial available")
+						self._serial_available_event.set()
 					stream_open_failed_counter = 0
 
-				except (FileNotFoundError, PermissionError):
+				except (FileNotFoundError, PermissionError, OSError):
 					LOGGER.warning("Serial is still not available")
 					stream_open_failed_counter += 1
 					if stream_open_failed_counter > 20:
