@@ -1065,6 +1065,8 @@ class Jablotron:
 			if not self._stream_data_updating_event.wait(0.5):
 				try:
 					if counter == 0 and not self._is_alarm_active():
+						if not self._serial_available_event.is_set():
+							LOGGER.warning("Sending heartbeat while serial is not available (some rare case)")
 						self._send_packets(self.create_packets_keepalive(self._config[CONF_PASSWORD]))
 
 						# Check some devices once an hour (and on the start too)
@@ -1078,6 +1080,8 @@ class Jablotron:
 
 							last_devices_update = actual_time
 					else:
+						if not self._serial_available_event.is_set():
+							LOGGER.warning("Sending heartbeat while serial is not available (general case)")
 						self._send_packet(self.create_packet_command(COMMAND_HEARTBEAT))
 
 					if not self._serial_available_event.is_set():
