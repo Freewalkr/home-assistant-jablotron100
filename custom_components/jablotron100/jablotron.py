@@ -1075,8 +1075,14 @@ class Jablotron:
 							last_devices_update is None
 							or (actual_time - last_devices_update).total_seconds() > 3600
 						):
+							if not self._serial_available_event.is_set():
+								LOGGER.warning("Updating devices status while serial is not available")
 							self._force_devices_status_update()
+							if not self._serial_available_event.is_set():
+								LOGGER.warning("Updating devices info while serial is not available")
 							self._force_devices_info_update()
+							if not self._serial_available_event.is_set():
+								LOGGER.warning("Done updating devices info while serial is not available")
 
 							last_devices_update = actual_time
 					else:
