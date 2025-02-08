@@ -216,7 +216,7 @@ DEVICE_INFO_KNOWN_SUBPACKETS: Final = (
 )
 DEVICE_INFO_UNKNOWN_SUBPACKETS: Final = (
 	b"\x05",
-	b"\x5d", # something from thermostat
+	b"\x93", # something from thermostat
 )
 
 
