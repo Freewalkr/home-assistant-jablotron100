@@ -216,6 +216,7 @@ DEVICE_INFO_KNOWN_SUBPACKETS: Final = (
 )
 DEVICE_INFO_UNKNOWN_SUBPACKETS: Final = (
 	b"\x05",
+	b"\x5d", # something from thermostat
 )
 
 
@@ -224,7 +225,9 @@ class DeviceInfoType(Enum):
 	GSM = 4
 	LAN = 6
 	POWER = 10
+	UNKNOWN_TS_1 = 11
 	POWER_PRECISE = 12
+	UNKNOWN_TS_2 = 13
 	INPUT_VALUE = 14
 	INPUT_EXTENDED = 15
 	UNKNOWN_1 = 16
@@ -233,7 +236,11 @@ class DeviceInfoType(Enum):
 	UNKNOWN_GSM = 21
 
 	def is_unknown(self) -> bool:
-		return self in (self.UNKNOWN_1, self.UNKNOWN_2, self.UNKNOWN_GSM)
+		return self in (self.UNKNOWN_1, 
+						self.UNKNOWN_2, 
+						self.UNKNOWN_GSM, 
+						self.UNKNOWN_TS_1, 
+						self.UNKNOWN_TS_2)
 
 
 class DeviceFault(Enum):
