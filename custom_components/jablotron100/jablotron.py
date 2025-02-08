@@ -1068,6 +1068,8 @@ class Jablotron:
 						if not self._serial_available_event.is_set():
 							LOGGER.warning("Sending heartbeat while serial is not available (some rare case)")
 						self._send_packets(self.create_packets_keepalive(self._config[CONF_PASSWORD]))
+						if not self._serial_available_event.is_set():
+							LOGGER.warning("Done sending heartbeat while serial is not available (some rare case)")
 
 						# Check some devices once an hour (and on the start too)
 						actual_time = datetime.datetime.now()
@@ -1089,6 +1091,8 @@ class Jablotron:
 						if not self._serial_available_event.is_set():
 							LOGGER.warning("Sending heartbeat while serial is not available (general case)")
 						self._send_packet(self.create_packet_command(COMMAND_HEARTBEAT))
+						if not self._serial_available_event.is_set():
+							LOGGER.warning("Done sending heartbeat while serial is not available (general case)")
 
 					if not self._serial_available_event.is_set():
 						LOGGER.warning("Heartbeat succeeded, considering serial available")
