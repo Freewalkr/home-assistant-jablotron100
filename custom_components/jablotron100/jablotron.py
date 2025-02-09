@@ -993,12 +993,17 @@ class Jablotron:
 							raw_packet = stream.read(STREAM_PACKET_SIZE)
 						except (ValueError, FileNotFoundError, PermissionError, OSError) as ex:
 							LOGGER.error("Can't read from serial, waiting till it's available")
-							self._serial_available_event.clear()
-							# heartbeat function will set this when serial becomes available
-							_ = self._serial_available_event.wait()
-							LOGGER.warning("Seems that serial is available now, reopening stream")
-							stream.close()
-							stream = self._open_read_stream()
+							while True:
+								try:
+									self._serial_available_event.clear()
+									# heartbeat function will set this when serial becomes available
+									_ = self._serial_available_event.wait()
+									LOGGER.warning("Seems that serial is available now, reopening stream")
+									stream.close()
+									stream = self._open_read_stream()
+									break
+								except (FileNotFoundError, OSError):
+									LOGGER.warning("Reopening stream failed, waiting for serial to become available again")
 
 
 					self._stream_data_updating_event.set()
